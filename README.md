@@ -31,7 +31,20 @@ A: Probably for a week. Then I'll go back to writing tasks on a sticky note like
 
 **Q: What's the tech stack?**
 
-A: Whatever Claude suggested first. I didn't push back.
+A: Svelte 5 + Vite. Tasks live in `localStorage`. No server, no database, no login. Hosted on GitHub Pages.
+
+## Run locally
+
+```sh
+npm install
+npm run dev
+```
+
+## Deploy
+
+Push to `main` and the [GitHub Actions workflow](.github/workflows/deploy.yml) builds and publishes to GitHub Pages. The site lives at `https://jubin-sanghvi.github.io/YATA/`.
+
+To enable Pages on a fresh repo: **Settings → Pages → Source: GitHub Actions**.
 
 **Q: Is it AI-powered?**
 
