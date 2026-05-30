@@ -33,6 +33,14 @@ A: Probably for a week. Then I'll go back to writing tasks on a sticky note like
 
 A: Svelte 5 + Vite. Tasks live in `localStorage`. No server, no database, no login. Hosted on GitHub Pages.
 
+**Q: Is it AI-powered?**
+
+A: It was AI-built, which is sort of the same thing if you don't think about it too hard.
+
+**Q: Can I contribute?**
+
+A: Sure. Match the energy.
+
 ## Run locally
 
 ```sh
@@ -42,14 +50,6 @@ npm run dev
 
 ## Deploy
 
-Push to `main` and the [GitHub Actions workflow](.github/workflows/deploy.yml) builds and publishes to GitHub Pages. The site lives at `https://jubin-sanghvi.github.io/YATA/`.
+Push to `main` and the [GitHub Actions workflow](.github/workflows/deploy.yml) builds and publishes to GitHub Pages. The site lives at [jubin-sanghvi.github.io/YATA](https://jubin-sanghvi.github.io/YATA/).
 
 To enable Pages on a fresh repo: **Settings → Pages → Source: GitHub Actions**.
-
-**Q: Is it AI-powered?**
-
-A: It was AI-built, which is sort of the same thing if you don't think about it too hard.
-
-**Q: Can I contribute?**
-
-A: Sure. Match the energy.
