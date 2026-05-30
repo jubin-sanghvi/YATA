@@ -1,6 +1,6 @@
 <script>
   import { flip } from 'svelte/animate';
-  import { dndzone } from 'svelte-dnd-action';
+  import { dragHandleZone } from 'svelte-dnd-action';
   import TaskRow from './TaskRow.svelte';
   import { store } from './store.svelte.js';
 
@@ -33,7 +33,7 @@
   {:else}
     <div
       class="list"
-      use:dndzone={{ items, flipDurationMs: flipDuration, dropTargetStyle: {} }}
+      use:dragHandleZone={{ items, flipDurationMs: flipDuration, dropTargetStyle: {} }}
       onconsider={handleConsider}
       onfinalize={handleFinalize}
     >

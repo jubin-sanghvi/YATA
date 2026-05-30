@@ -1,5 +1,6 @@
 <script>
   import { fly } from 'svelte/transition';
+  import { dragHandle } from 'svelte-dnd-action';
   import { formatDue } from './buckets.js';
   import { store } from './store.svelte.js';
 
@@ -13,22 +14,28 @@
 
   const SWIPE_THRESHOLD = 80;
 
+  const DRAG_START = 6;
+
   function onPointerDown(e) {
     if (editing) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     if (e.target.closest('.check, .edit')) return;
-    dragging = true;
     startX = e.clientX;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    dragging = true;
+    // Don't capture yet — wait until movement exceeds threshold so taps still fire as clicks.
   }
 
   function onPointerMove(e) {
     if (!dragging) return;
     const dx = e.clientX - startX;
+    if (Math.abs(dx) < DRAG_START) return;
+    if (!e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+    }
     dragX = Math.max(-160, Math.min(160, dx));
   }
 
-  function onPointerUp() {
+  function onPointerUp(e) {
     if (!dragging) return;
     dragging = false;
     if (dragX > SWIPE_THRESHOLD) {
@@ -46,7 +53,14 @@
     editing = true;
   }
 
+  let abandonEdit = false;
+
   function commitEdit() {
+    if (abandonEdit) {
+      abandonEdit = false;
+      editing = false;
+      return;
+    }
     const next = editText.trim();
     if (next && next !== task.text) {
       store.update(task.id, { text: next });
@@ -56,7 +70,7 @@
 
   function onEditKey(e) {
     if (e.key === 'Enter') { e.preventDefault(); commitEdit(); }
-    if (e.key === 'Escape') { editing = false; }
+    if (e.key === 'Escape') { abandonEdit = true; editing = false; }
   }
 
   let bgHint = $derived(
@@ -86,14 +100,20 @@
     onpointerup={onPointerUp}
     onpointercancel={onPointerUp}
   >
-    <button
+    <span
       class="check"
       class:checked={task.done}
-      onclick={(e) => { e.stopPropagation(); store.toggle(task.id); }}
+      role="checkbox"
+      tabindex="0"
+      aria-checked={task.done}
       aria-label={task.done ? 'Mark as not done' : 'Mark as done'}
+      onmousedown={(e) => e.stopPropagation()}
+      ontouchstart={(e) => e.stopPropagation()}
+      onclick={(e) => { e.stopPropagation(); store.toggle(task.id); }}
+      onkeydown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); store.toggle(task.id); } }}
     >
       {#if task.done}✓{/if}
-    </button>
+    </span>
 
     <div class="body">
       {#if editing}
@@ -105,14 +125,30 @@
           use:focusOnMount
         />
       {:else}
-        <button class="text" onclick={startEdit} ondblclick={startEdit}>
+        <span
+          class="text"
+          role="button"
+          tabindex="0"
+          onclick={startEdit}
+          onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); startEdit(); } }}
+        >
           {task.text}
-        </button>
+        </span>
       {/if}
       {#if task.dueAt}
         <span class="due">{formatDue(task.dueAt)}</span>
       {/if}
     </div>
+
+    <span
+      class="handle"
+      use:dragHandle
+      role="button"
+      tabindex="-1"
+      aria-label="Drag to reorder {task.text}"
+      onmousedown={(e) => e.stopPropagation()}
+      ontouchstart={(e) => e.stopPropagation()}
+    >⋮⋮</span>
   </div>
 </div>
 
@@ -152,11 +188,9 @@
     box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 1px rgba(0,0,0,0.02);
     touch-action: pan-y;
     transition: transform 200ms cubic-bezier(.2,.7,.2,1), box-shadow 120ms;
-    cursor: grab;
   }
   .card.dragging {
     transition: none;
-    cursor: grabbing;
     box-shadow: 0 4px 14px rgba(0,0,0,0.10);
   }
   .card.done .text { color: var(--text-muted); text-decoration: line-through; }
@@ -187,16 +221,19 @@
     min-width: 0;
   }
   .text {
-    background: none;
-    border: none;
-    padding: 0;
-    text-align: left;
+    display: block;
     color: var(--text);
     font-size: 0.98rem;
     cursor: text;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    outline: none;
+  }
+  .text:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
   .edit {
     background: transparent;
@@ -211,5 +248,22 @@
     margin-top: 2px;
     font-size: 0.78rem;
     color: var(--text-muted);
+  }
+  .handle {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    letter-spacing: -3px;
+    padding: 4px 6px;
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 150ms;
+    user-select: none;
+  }
+  .handle:active { cursor: grabbing; }
+  .row:hover .handle,
+  .handle:focus-visible { opacity: 0.6; }
+  @media (hover: none) {
+    .handle { opacity: 0.4; }
   }
 </style>

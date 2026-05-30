@@ -25,7 +25,7 @@
   {/each}
 
   <footer>
-    Tap to edit · Swipe right to complete · Swipe left to delete · Drag to reorder
+    Tap to edit · Swipe right to complete · Swipe left to delete · Drag the handle to reorder
   </footer>
 </main>
 
